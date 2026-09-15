@@ -1,0 +1,30 @@
+services:
+  db:
+    image: postgres:18
+    container_name: bookstore_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: bookstore
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d bookstore"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    container_name: bookstore_api
+    environment:
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@db:5432/bookstore
+      SECRET_KEY: bookstore-secret-key-2026
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
